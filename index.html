@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PerformanceOS – Amaris</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+:root{--purple:#7F77DD;--pl:#EEEDFE;--pd:#3C3489;--teal:#1D9E75;--tl:#E1F5EE;--amber:#BA7517;--al:#FAEEDA;--coral:#D85A30;--bg:#F8F7FF;--card:#fff;--text:#1A1A2E;--t2:#6B6B8A;--border:#E8E7F5}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+.scr{display:none;min-height:100vh;flex-direction:column}
+.scr.on{display:flex}
+#loginScr{align-items:center;justify-content:center;padding:2rem}
+.logo{width:72px;height:72px;border-radius:20px;background:var(--purple);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700;margin:0 auto 1rem}
+.lcard{background:var(--card);border-radius:16px;padding:2rem;width:100%;max-width:400px;border:1px solid var(--border);margin-top:1rem}
+h1{font-size:22px;font-weight:600;margin-bottom:4px;text-align:center}
+.sub{color:var(--t2);font-size:13px;margin-bottom:2rem;text-align:center}
+input{width:100%;padding:13px 16px;border:1px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--bg);margin-bottom:10px;outline:none;display:block}
+input:focus{border-color:var(--purple)}
+.btn{width:100%;padding:14px;background:var(--purple);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;display:block}
+.btn:hover{opacity:.9}
+.btn-sm{padding:8px 16px;border-radius:20px;border:1px solid var(--purple);background:none;color:var(--purple);cursor:pointer;font-size:12px;width:auto}
+.err{color:var(--coral);font-size:13px;margin-top:8px;display:none}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-title{font-weight:600;font-size:16px;flex:1}
+.bk{background:none;border:none;cursor:pointer;color:var(--t2);font-size:20px;padding:4px 8px}
+.content{flex:1;overflow-y:auto;padding:20px;max-width:680px;width:100%;margin:0 auto}
+.slabel{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;margin-top:20px}
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;margin-bottom:10px}
+.tcard:hover{box-shadow:0 2px 12px rgba(127,119,221,.15)}
+.av{width:44px;height:44px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:var(--purple);flex-shrink:0}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.bin{background:var(--tl);color:var(--teal)}
+.brec{background:var(--al);color:var(--amber)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--card);overflow-x:auto;flex-shrink:0}
+.tab{padding:14px 18px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{color:var(--purple);border-bottom-color:var(--purple)}
+.tc{display:none;padding:20px;max-width:680px;width:100%;margin:0 auto}
+.tc.on{display:block}
+.ocard{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.ohdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.onum{background:var(--pl);color:var(--pd);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.otitle{font-weight:500;font-size:14px;flex:1}
+.owt{background:var(--purple);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px}
+.obody{padding:12px 16px}
+.odesc{font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.5}
+.kpi{background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px}
+.chip span{color:var(--t2)}
+.chat-wrap{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:50vh}
+.msg{max-width:82%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5}
+.mai{background:var(--card);border:1px solid var(--border);border-radius:4px 16px 16px 16px;align-self:flex-start}
+.mme{background:var(--purple);color:#fff;border-radius:16px 16px 4px 16px;align-self:flex-end}
+.cinput-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--card);flex-shrink:0}
+.cinput{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:20px;font-size:14px;outline:none}
+.cinput:focus{border-color:var(--purple)}
+.sbtn{padding:10px 18px;background:var(--purple);color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:14px}
+.genbtn{padding:8px;background:none;border:1px solid var(--purple);border-radius:20px;cursor:pointer;font-size:12px;color:var(--purple);margin:8px 16px;display:block;width:calc(100% - 32px)}
+.dots{display:flex;gap:4px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:4px 16px 16px 16px;align-self:flex-start}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:bonce 1s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bonce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.ms-input{width:85px;padding:7px 8px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--card);color:var(--text)}
+.pbar{height:6px;background:#E5E3F8;border-radius:3px;overflow:hidden;margin-top:4px}
+.pfill{height:100%;background:var(--purple);border-radius:3px;transition:width .3s}
+.mform{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.agitem{display:flex;justify-content:space-between;padding:6px 10px;background:var(--bg);border-radius:6px;font-size:12px;margin-bottom:4px}
+.msaved{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.mcard{background:var(--bg);border-radius:8px;padding:12px;text-align:center}
+.mval{font-size:24px;font-weight:600;margin-top:4px}
+.mlbl{font-size:11px;color:var(--t2)}
+textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;resize:vertical;font-family:inherit;background:var(--card);color:var(--text)}
+.loading{text-align:center;padding:2rem;color:var(--t2);font-size:14px}
+.empty{text-align:center;padding:3rem 1rem;color:var(--t2)}
+.sopt{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;font-size:13px;color:var(--t2)}
+.sopt.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+select{padding:7px 6px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--bg);color:var(--text)}
+</style>
+</head>
+<body>
+
+<div id="loginScr" class="scr on">
+  <div class="logo">P</div>
+  <h1>PerformanceOS</h1>
+  <p class="sub">Amaris · Mantu Group</p>
+  <div class="lcard">
+    <input type="email" id="lEmail" placeholder="prenom.nom@amaris.com"/>
+    <input type="password" id="lPwd" placeholder="Mot de passe"/>
+    <button class="btn" id="loginBtn">Se connecter</button>
+    <p class="err" id="lErr">Email ou mot de passe incorrect.</p>
+    <p style="font-size:11px;color:var(--t2);margin-top:12px;text-align:center">Accès réservé aux collaborateurs @amaris.com</p>
+  </div>
+</div>
+
+<div id="homeScr" class="scr">
+  <div class="topbar">
+    <div class="av" id="hAv" style="width:34px;height:34px;font-size:13px">T</div>
+    <div class="topbar-title" id="hGreet">Bonjour</div>
+    <button class="bk" id="logoutBtn" title="Déconnexion">↩</button>
+  </div>
+  <div class="content">
+    <div class="slabel">Mon équipe</div>
+    <div id="teamList"><div class="loading">Chargement...</div></div>
+    <div class="tcard" id="addBtn" style="border:1px dashed var(--border);background:none">
+      <div class="av" style="background:#F0EFF8;color:var(--t2)">+</div>
+      <div style="color:var(--t2);font-size:14px">Ajouter un managee</div>
+    </div>
+  </div>
+</div>
+
+<div id="manageeScr" class="scr">
+  <div class="topbar">
+    <button class="bk" id="mBack">←</button>
+    <div class="av" id="mAv" style="width:34px;height:34px;font-size:13px">?</div>
+    <div style="flex:1;margin-left:8px">
+      <div style="font-weight:500;font-size:14px" id="mName">—</div>
+      <div style="font-size:11px;color:var(--t2)" id="mRole">—</div>
+    </div>
+    <button class="btn-sm" id="aiBtn">IA 🤖</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-tab="obj">Objectifs</button>
+    <button class="tab" data-tab="ms">Milestones</button>
+    <button class="tab" data-tab="wk">Weekly</button>
+    <button class="tab" data-tab="rc">Récap</button>
+  </div>
+  <div style="flex:1;overflow-y:auto">
+    <div id="tc-obj" class="tc on">
+      <div id="objContent"><div class="empty"><p>Aucun objectif généré.</p><br><button class="btn" id="goAiBtn" style="width:auto;padding:10px 24px;border-radius:20px">Générer avec l'IA →</button></div></div>
+    </div>
+    <div id="tc-ms" class="tc">
+      <p style="font-size:13px;color:var(--t2);margin-bottom:16px;padding:20px 0 0">% d'atteinte estimés par le manager et le managee.</p>
+      <div id="msContent"><p style="color:var(--t2);font-size:13px">Génère d'abord les objectifs.</p></div>
+    </div>
+    <div id="tc-wk" class="tc">
+      <div class="mform">
+        <div style="font-weight:500;font-size:14px;margin-bottom:14px">Planifier un weekly</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="date" id="wDate" style="flex:1;margin:0"/>
+          <input type="time" id="wTime" style="width:100px;margin:0"/>
+        </div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px">Points agenda</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="agInput" placeholder="Point agenda…" style="flex:1;margin:0"/>
+          <select id="kpiSel"><option value="">KPI</option></select>
+          <button id="addAgBtn" style="padding:7px 12px;background:var(--purple);color:#fff;border:none;border-radius:8px;cursor:pointer;flex-shrink:0">+</button>
+        </div>
+        <div id="agList"></div>
+        <button class="btn" id="saveMeetBtn" style="margin-top:10px">Enregistrer le weekly</button>
+      </div>
+      <div id="meetList" style="padding:0 0 20px"></div>
+    </div>
+    <div id="tc-rc" class="tc">
+      <p style="font-size:13px;color:var(--t2);margin-bottom:16px;padding-top:20px">Synthèse comparative des estimations.</p>
+      <div id="rcContent"><p style="color:var(--t2);font-size:13px">Génère d'abord les objectifs.</p></div>
+    </div>
+  </div>
+</div>
+
+<div id="assistantScr" class="scr">
+  <div class="topbar">
+    <button class="bk" id="aiBack">←</button>
+    <div class="av" style="width:34px;height:34px;font-size:12px;background:var(--pl);color:var(--purple)">IA</div>
+    <div style="margin-left:8px"><div style="font-weight:500;font-size:14px" id="aiTitle">Assistant objectifs</div><div style="font-size:11px;color:var(--t2)">IA générative</div></div>
+  </div>
+  <div class="chat-wrap" id="chatWrap"></div>
+  <button class="genbtn" id="genDirect">⚡ Générer directement sans dialogue</button>
+  <div class="cinput-row">
+    <input class="cinput" id="chatIn" placeholder="Réponds ou dis 'génère'…"/>
+    <button class="sbtn" id="sendBtn">↑</button>
+  </div>
+</div>
+
+<div id="adminScr" class="scr">
+  <div class="topbar">
+    <button class="bk" id="adminBack">←</button>
+    <div class="topbar-title">Gestion des comptes</div>
+  </div>
+  <div class="content">
+    <div class="mform">
+      <div style="font-weight:500;font-size:14px;margin-bottom:14px">Créer un compte managee</div>
+      <input id="aN" placeholder="Nom complet"/>
+      <input id="aE" placeholder="prenom.nom@amaris.com" type="email"/>
+      <input id="aR" placeholder="Titre du poste"/>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div class="sopt on" id="sIn">En poste</div>
+        <div class="sopt" id="sRec">Recruté</div>
+      </div>
+      <button class="btn" id="createBtn">Créer le compte</button>
+      <p id="aMsg" style="font-size:12px;margin-top:8px;color:var(--teal);display:none"></p>
+    </div>
+    <div class="slabel">Utilisateurs</div>
+    <div id="aUserList"><div class="loading">Chargement...</div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyCpgY3fDmDQ2La3snoeGFmGHbXaE0HGFug",
+  authDomain:"performanceos-amaris.firebaseapp.com",
+  projectId:"performanceos-amaris",
+  storageBucket:"performanceos-amaris.firebasestorage.app",
+  messagingSenderId:"902428866084",
+  appId:"1:902428866084:web:0f1decceb69a47ec990ab1"
+});
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let CU=null,CM=null,chatHist=[],curObjs=null,agTmp=[],msData={};
+const MS_LABELS=['30 juin 2025','30 sept. 2025','31 déc. 2025','31 mars 2026'];
+const ini=n=>(n||'?').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+const show=id=>{ document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on')); document.getElementById(id).classList.add('on'); };
+const $=id=>document.getElementById(id);
+
+// AUTH
+onAuthStateChanged(auth,u=>{
+  if(u){
+    CU=u;
+    const n=u.displayName||u.email.split('@')[0];
+    const fn=n.split(/[.\s]/)[0];
+    $('hGreet').textContent='Bonjour, '+fn.charAt(0).toUpperCase()+fn.slice(1);
+    $('hAv').textContent=ini(n.replace('.',' '));
+    show('homeScr'); loadTeam();
+  } else { CU=null; show('loginScr'); }
+});
+
+$('loginBtn').onclick=async()=>{
+  const email=$('lEmail').value.trim(), pwd=$('lPwd').value;
+  $('lErr').style.display='none';
+  if(!email.endsWith('@amaris.com')){ $('lErr').textContent='Seuls les emails @amaris.com sont autorisés.'; $('lErr').style.display='block'; return; }
+  try{ await signInWithEmailAndPassword(auth,email,pwd); }
+  catch(e){ $('lErr').style.display='block'; }
+};
+$('logoutBtn').onclick=()=>signOut(auth);
+
+// TEAM
+async function loadTeam(){
+  const el=$('teamList'); el.innerHTML='<div class="loading">Chargement...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'users'),where('managerId','==',CU.uid)));
+    if(snap.empty){ el.innerHTML='<p style="color:var(--t2);font-size:13px;padding:8px 0">Aucun managee. Ajoutez-en un ci-dessous.</p>'; return; }
+    el.innerHTML='';
+    snap.forEach(d=>{ const u={id:d.id,...d.data()};
+      const div=document.createElement('div'); div.className='tcard';
+      div.innerHTML=`<div class="av">${ini(u.name)}</div><div style="flex:1"><div style="font-weight:500;font-size:15px">${u.name}</div><div style="font-size:12px;color:var(--t2)">${u.role}</div></div><span class="badge ${u.status==='in'?'bin':'brec'}">${u.status==='in'?'En poste':'Recruté'}</span>`;
+      div.onclick=()=>openManagee(u); el.appendChild(div);
+    });
+  }catch(e){ el.innerHTML='<p style="color:var(--coral);font-size:13px">Erreur: '+e.message+'</p>'; }
+}
+
+$('addBtn').onclick=()=>{ show('adminScr'); loadAdminUsers(); };
+
+function openManagee(u){
+  CM=u; chatHist=[]; curObjs=null; agTmp=[];
+  $('mAv').textContent=ini(u.name);
+  $('mName').textContent=u.name;
+  $('mRole').textContent=u.role;
+  show('manageeScr'); switchTab('obj'); loadObjs(); loadMeets();
+}
+$('mBack').onclick=()=>{ show('homeScr'); loadTeam(); };
+$('aiBtn').onclick=openAssistant;
+$('goAiBtn').onclick=openAssistant;
+$('aiBack').onclick=()=>show('manageeScr');
+$('adminBack').onclick=()=>{ show('homeScr'); loadTeam(); };
+
+// TABS
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  $('tc-'+name).classList.add('on');
+  if(name==='ms'&&curObjs) renderMS();
+  if(name==='rc'&&curObjs) renderRC();
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
+
+// OBJECTIVES
+async function loadObjs(){
+  try{
+    const snap=await getDocs(query(collection(db,'objectives'),where('manageeId','==',CM.id)));
+    if(!snap.empty){ curObjs=snap.docs[0].data().objectives; renderObjs(); }
+    else{ $('objContent').innerHTML='<div class="empty"><p>Aucun objectif généré.</p><br><button class="btn" id="goAiBtn2" style="width:auto;padding:10px 24px;border-radius:20px">Générer avec l\'IA →</button></div>'; $('goAiBtn2').onclick=openAssistant; }
+  }catch(e){}
+}
+
+function renderObjs(){
+  if(!curObjs) return;
+  $('objContent').innerHTML=curObjs.map(o=>`
+    <div class="ocard"><div class="ohdr"><span class="onum">O${o.id}</span><span class="otitle">${o.title}</span><span class="owt">${o.weight}%</span></div>
+    <div class="obody"><p class="odesc">${o.description}</p>
+    ${(o.kpis||[]).map(k=>`<div class="kpi"><div style="font-size:12px;font-weight:500">${k.label}</div><div style="font-size:11px;color:var(--t2)">Unité : ${k.unit}</div>
+    <div class="chips">${['Q1','Q2','Q3','Q4'].map(q=>`<div class="chip"><span>${q} </span>${k.targets?.[q]||'—'}</div>`).join('')}</div></div>`).join('')}
+    </div></div>`).join('')+`<button onclick="exportPDF()" style="margin-top:8px;padding:8px 16px;border:1px solid var(--purple);border-radius:20px;background:none;color:var(--purple);cursor:pointer;font-size:12px">📄 Exporter PDF</button>`;
+  updateKpiSel();
+}
+
+function updateKpiSel(){
+  const s=$('kpiSel'); s.innerHTML='<option value="">KPI</option>';
+  (curObjs||[]).forEach(o=>(o.kpis||[]).forEach((_,i)=>{ const op=document.createElement('option'); op.value=`O${o.id}-K${i+1}`; op.textContent=`O${o.id}-K${i+1}`; s.appendChild(op); }));
+}
+
+// ASSISTANT
+function openAssistant(){
+  show('assistantScr');
+  $('aiTitle').textContent='Objectifs – '+(CM?.name||'');
+  if(chatHist.length===0) initChat();
+}
+
+async function callClaude(messages,system){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','anthropic-dangerous-allow-browser':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system,messages})
+  });
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.content?.[0]?.text||'';
+}
+
+const getSys=mode=>{
+  const b=`Tu es un assistant RH expert pour Amaris/Mantu. Tu aides à créer des lettres d'objectifs SMART pour ${CM?.name} (${CM?.role}). Période 01/04/2025–31/03/2026. Milestones Q1=30/06,Q2=30/09,Q3=31/12,Q4=31/03. Réponds en français.`;
+  return mode==='gen'
+    ?b+` Génère UNIQUEMENT ce JSON valide, rien d'autre: {"objectives":[{"id":1,"title":"...","description":"...","weight":25,"kpis":[{"label":"...","unit":"...","targets":{"Q1":"...","Q2":"...","Q3":"...","Q4":"..."}}]}]}. 3-4 objectifs, poids total=100%.`
+    :b+` Pose 2 questions courtes pour cadrer les objectifs. Si l'utilisateur dit "génère", réponds UNIQUEMENT avec le JSON: {"objectives":[...]}`;
+};
+
+const addMsg=(role,text)=>{ const c=$('chatWrap'),d=document.createElement('div'); d.className='msg '+(role==='user'?'mme':'mai'); d.textContent=text; c.appendChild(d); c.scrollTop=c.scrollHeight; };
+const showDots=()=>{ const c=$('chatWrap'),d=document.createElement('div'); d.className='dots'; d.id='typ'; d.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>'; c.appendChild(d); c.scrollTop=c.scrollHeight; };
+const hideDots=()=>$('typ')?.remove();
+
+async function initChat(){
+  $('chatWrap').innerHTML=''; chatHist=[];
+  showDots();
+  try{
+    const r=await callClaude([{role:'user',content:`Crée la lettre d'objectifs pour ${CM?.name} (${CM?.role}). Pose 2 questions clés.`}],getSys('chat'));
+    hideDots(); chatHist.push({role:'assistant',content:r}); addMsg('assistant',r);
+  }catch(e){ hideDots(); addMsg('assistant','Erreur de connexion à l\'IA. Utilise le bouton "Générer directement".'); }
+}
+
+async function doSend(){
+  const inp=$('chatIn'),txt=inp.value.trim(); if(!txt) return;
+  inp.value=''; addMsg('user',txt); chatHist.push({role:'user',content:txt}); showDots();
+  try{
+    const r=await callClaude(chatHist,getSys('chat')); hideDots();
+    if(r.includes('"objectives"')){ try{ const j=JSON.parse(r.match(/\{[\s\S]*\}/)[0]); await saveObjs(j.objectives); return; }catch(e){} }
+    chatHist.push({role:'assistant',content:r}); addMsg('assistant',r);
+  }catch(e){ hideDots(); addMsg('assistant','Erreur IA. Réessaie.'); }
+}
+
+$('sendBtn').onclick=doSend;
+$('chatIn').onkeydown=e=>{ if(e.key==='Enter') doSend(); };
+
+$('genDirect').onclick=async()=>{
+  $('chatWrap').innerHTML=''; showDots();
+  try{
+    const r=await callClaude([{role:'user',content:'Génère la lettre d\'objectifs complète.'}],getSys('gen'));
+    hideDots();
+    const c=r.replace(/```json|```/g,'').trim();
+    const j=JSON.parse(c.match(/\{[\s\S]*\}/)[0]);
+    await saveObjs(j.objectives);
+  }catch(e){ hideDots(); addMsg('assistant','Erreur de génération. Réessaie.'); }
+};
+
+async function saveObjs(objs){
+  curObjs=objs;
+  try{ await addDoc(collection(db,'objectives'),{manageeId:CM.id,managerId:CU.uid,objectives:objs,createdAt:serverTimestamp()}); }catch(e){}
+  addMsg('assistant','✅ Objectifs générés ! Retour dans 2 secondes...');
+  setTimeout(()=>{ show('manageeScr'); renderObjs(); },2000);
+}
+
+// MILESTONES
+function renderMS(){
+  if(!curObjs) return;
+  let html='';
+  curObjs.forEach(o=>{
+    html+=`<div class="ocard"><div class="ohdr"><span class="onum">O${o.id}</span><span class="otitle">${o.title}</span></div><div class="obody">`;
+    (o.kpis||[]).forEach((k,ki)=>{
+      html+=`<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px">${k.label}</div>`;
+      ['Q1','Q2','Q3','Q4'].forEach((q,qi)=>{
+        const key=`${o.id}-${ki}-${q}`,mv=msData[key+'-m']||'',ev=msData[key+'-e']||'';
+        const avg=mv&&ev?Math.round((+mv+ +ev)/2):null,diff=mv&&ev?+mv- +ev:null;
+        html+=`<div style="margin-bottom:10px">
+          <div style="font-size:11px;color:#aaa;margin-bottom:4px">${MS_LABELS[qi]}</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="ms-input" type="number" min="0" max="100" placeholder="Mgr %" value="${mv}" data-key="${key}" data-who="m" oninput="window._ms(this)"/>
+            <input class="ms-input" type="number" min="0" max="100" placeholder="Mee %" value="${ev}" data-key="${key}" data-who="e" oninput="window._ms(this)"/>
+            ${diff!==null?`<span style="font-size:11px;font-weight:500;color:${Math.abs(diff)>10?'var(--coral)':'var(--teal)'}">${diff>0?'Mgr +'+diff:diff<0?'Mee +'+Math.abs(diff):'✓'}</span>`:''}
+          </div>${avg!==null?`<div class="pbar"><div class="pfill" style="width:${avg}%"></div></div>`:''}</div>`;
+      });
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+  $('msContent').innerHTML=html;
+}
+window._ms=el=>{ msData[el.dataset.key+'-'+el.dataset.who]=el.value; };
+
+// MEETINGS
+$('addAgBtn').onclick=()=>{
+  const t=$('agInput').value.trim(),k=$('kpiSel').value;
+  if(!t) return; agTmp.push({text:t,kpi:k}); $('agInput').value='';
+  $('agList').innerHTML=agTmp.map(a=>`<div class="agitem"><span>${a.text}</span>${a.kpi?`<span style="color:var(--purple);font-weight:500">${a.kpi}</span>`:''}</div>`).join('');
+};
+
+$('saveMeetBtn').onclick=async()=>{
+  const date=$('wDate').value,time=$('wTime').value;
+  if(!date||!time){ alert('Date et heure requises'); return; }
+  await addDoc(collection(db,'meetings'),{manageeId:CM.id,managerId:CU.uid,date,time,agenda:agTmp,createdAt:serverTimestamp()});
+  agTmp=[]; $('wDate').value=''; $('wTime').value=''; $('agList').innerHTML=''; loadMeets();
+};
+
+async function loadMeets(){
+  if(!CM) return;
+  try{
+    const snap=await getDocs(query(collection(db,'meetings'),where('manageeId','==',CM.id)));
+    $('meetList').innerHTML=snap.docs.map(d=>{ const m=d.data();
+      const ds=m.date?new Date(m.date+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}):'';
+      return `<div class="msaved"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong style="font-size:13px">${ds}</strong><span style="font-size:12px;color:var(--t2)">${m.time}</span></div>${(m.agenda||[]).map(a=>`<div class="agitem"><span>${a.text}</span>${a.kpi?`<span style="color:var(--purple);font-size:11px">${a.kpi}</span>`:''}</div>`).join('')}</div>`;
+    }).join('')||'<p style="color:var(--t2);font-size:13px">Aucun weekly planifié.</p>';
+  }catch(e){}
+}
+
+// RECAP
+function renderRC(){
+  if(!curObjs) return;
+  $('rcContent').innerHTML=curObjs.map(o=>{
+    const v={m:[],e:[]};
+    (o.kpis||[]).forEach((_,ki)=>['Q1','Q2','Q3','Q4'].forEach(q=>{ const k=`${o.id}-${ki}-${q}`; if(msData[k+'-m']) v.m.push(+msData[k+'-m']); if(msData[k+'-e']) v.e.push(+msData[k+'-e']); }));
+    const am=v.m.length?Math.round(v.m.reduce((a,b)=>a+b)/v.m.length):null;
+    const ae=v.e.length?Math.round(v.e.reduce((a,b)=>a+b)/v.e.length):null;
+    const avg=am&&ae?Math.round((am+ae)/2):null,diff=am&&ae?Math.abs(am-ae):0;
+    return `<div class="ocard"><div class="ohdr"><span class="onum">O${o.id}</span><span class="otitle">${o.title}</span></div><div class="obody">
+      <div class="rgrid"><div class="mcard"><div class="mlbl">Manager</div><div class="mval" style="color:var(--purple)">${am!==null?am+'%':'—'}</div></div><div class="mcard"><div class="mlbl">Managee</div><div class="mval" style="color:var(--teal)">${ae!==null?ae+'%':'—'}</div></div></div>
+      ${avg!==null?`<div class="pbar" style="margin-bottom:8px"><div class="pfill" style="width:${avg}%;background:${diff>15?'var(--coral)':'var(--teal)'}"></div></div>`:''}
+      ${diff>15?`<p style="font-size:11px;color:var(--coral);margin-bottom:8px">⚠️ Écart ${diff}pp – discussion recommandée</p>`:''}
+      <textarea rows="2" placeholder="Commentaire manager / managee…"></textarea></div></div>`;
+  }).join('');
+}
+
+// ADMIN
+let admSt='in';
+$('sIn').onclick=()=>{ admSt='in'; $('sIn').classList.add('on'); $('sRec').classList.remove('on'); };
+$('sRec').onclick=()=>{ admSt='recruited'; $('sRec').classList.add('on'); $('sIn').classList.remove('on'); };
+
+$('createBtn').onclick=async()=>{
+  const name=$('aN').value.trim(),email=$('aE').value.trim(),role=$('aR').value.trim();
+  if(!name||!email||!role){ alert('Remplis tous les champs'); return; }
+  if(!email.endsWith('@amaris.com')){ alert('Email doit être @amaris.com'); return; }
+  const pwd='Amaris'+Math.floor(Math.random()*9000+1000)+'!';
+  try{
+    await addDoc(collection(db,'users'),{name,email,role,status:admSt,managerId:CU.uid,tempPassword:pwd,createdAt:serverTimestamp()});
+    $('aMsg').textContent=`✅ ${name} ajouté. Mot de passe temporaire : ${pwd}`;
+    $('aMsg').style.display='block';
+    $('aN').value=''; $('aE').value=''; $('aR').value='';
+    loadTeam(); loadAdminUsers();
+  }catch(e){ alert('Erreur: '+e.message); }
+};
+
+async function loadAdminUsers(){
+  try{
+    const snap=await getDocs(collection(db,'users'));
+    $('aUserList').innerHTML=snap.docs.map(d=>{ const u=d.data();
+      return `<div class="tcard"><div class="av">${ini(u.name||'?')}</div><div style="flex:1"><div style="font-size:14px;font-weight:500">${u.name}</div><div style="font-size:12px;color:var(--t2)">${u.email}</div></div><span style="font-size:12px;color:var(--purple)">${u.role}</span></div>`;
+    }).join('')||'<p style="color:var(--t2);font-size:13px">Aucun utilisateur.</p>';
+  }catch(e){}
+}
+
+// PDF
+window.exportPDF=function(){
+  if(!curObjs) return;
+  const w=window.open('','_blank');
+  const body=curObjs.map(o=>`<div style="border:1px solid #E8E7F5;border-radius:10px;padding:16px;margin-bottom:20px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="background:#EEEDFE;color:#3C3489;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold">O${o.id}</span><strong style="flex:1">${o.title}</strong><span style="background:#7F77DD;color:#fff;padding:3px 10px;border-radius:20px;font-size:12px">${o.weight}%</span></div><p style="color:#6B6B8A;font-size:13px;margin-bottom:12px">${o.description}</p>${(o.kpis||[]).map(k=>`<div style="background:#F8F7FF;border-radius:8px;padding:10px;margin-bottom:8px"><strong>${k.label}</strong> <em style="color:#6B6B8A">(${k.unit})</em><div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:#6B6B8A"><span>Q1:${k.targets?.Q1||'—'}</span><span>Q2:${k.targets?.Q2||'—'}</span><span>Q3:${k.targets?.Q3||'—'}</span><span>Q4:${k.targets?.Q4||'—'}</span></div></div>`).join('')}</div>`).join('');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Objectifs ${CM?.name}</title></head><body style="font-family:Arial,sans-serif;padding:40px;color:#1A1A2E;max-width:800px;margin:0 auto"><h1 style="color:#7F77DD;margin-bottom:4px">Lettre d'Objectifs — ${CM?.name}</h1><p style="color:#6B6B8A;margin-bottom:30px">${CM?.role} · 01/04/2025 – 31/03/2026 · Amaris / Mantu Group</p>${body}<div style="margin-top:40px;border-top:1px solid #E8E7F5;padding-top:20px"><p>Manager : Thomas Buc _________________________&nbsp;&nbsp; Date : ___________</p><p style="margin-top:16px">Managee : ${CM?.name} _________________________&nbsp;&nbsp; Date : ___________</p></div><script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+};
+</script>
+</body>
+</html>
