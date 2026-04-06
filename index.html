@@ -277,4 +277,53 @@ async function callClaude(messages,system){
 
 const getSys=mode=>{ const b=`Tu es un assistant RH expert pour Amaris/Mantu. Tu aides à créer des lettres d'objectifs SMART pour ${CM?.name} (${CM?.role}). Période 01/04/2025–31/03/2026. Milestones Q1=30/06,Q2=30/09,Q3=31/12,Q4=31/03. Réponds en français.`; return mode==='gen'?b+` Génère UNIQUEMENT ce JSON valide: {"objectives":[{"id":1,"title":"...","description":"...","weight":25,"kpis":[{"label":"...","unit":"...","targets":{"Q1":"...","Q2":"...","Q3":"...","Q4":"..."}}]}]}. 3-4 objectifs, poids=100%.`:b+` Pose 2 questions courtes. Si l'utilisateur dit "génère", réponds UNIQUEMENT avec le JSON.`; };
 
-const addMsg=(role,text)=>{ const c=$('chatWrap'),d=document.createElement('div'); d.className='msg '+(role==='user'?'mme':'mai'); d.textContent=text; c.appendChild(d);
+const addMsg=(role,text)=>{ const c=$('chatWrap'),d=document.createElement('div'); d.className='msg '+(role==='user'?'mme':'mai'); d.textContent=text; c.appendChild(d); c.scrollTop=c.scrollHeight; };
+const showDots=()=>{ const c=$('chatWrap'),d=document.createElement('div'); d.className='dots'; d.id='typ'; d.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>'; c.appendChild(d); c.scrollTop=c.scrollHeight; };
+const hideDots=()=>$('typ')?.remove();
+
+async function initChat(){ $('chatWrap').innerHTML=''; chatHist=[]; showDots(); try{ const r=await callClaude([{role:'user',content:`Crée la lettre d'objectifs pour ${CM?.name} (${CM?.role}). Pose 2 questions clés.`}],getSys('chat')); hideDots(); chatHist.push({role:'assistant',content:r}); addMsg('assistant',r); }catch(e){ hideDots(); addMsg('assistant','Erreur IA. Utilise "Générer directement".'); } }
+
+async function doSend(){ const inp=$('chatIn'),txt=inp.value.trim(); if(!txt) return; inp.value=''; addMsg('user',txt); chatHist.push({role:'user',content:txt}); showDots();
+  try{ const r=await callClaude(chatHist,getSys('chat')); hideDots(); if(r.includes('"objectives"')){ try{ const j=JSON.parse(r.match(/\{[\s\S]*\}/)[0]); await saveObjs(j.objectives); return; }catch(e){} } chatHist.push({role:'assistant',content:r}); addMsg('assistant',r); }catch(e){ hideDots(); addMsg('assistant','Erreur IA.'); }
+}
+$('sendBtn').onclick=doSend;
+$('chatIn').onkeydown=e=>{ if(e.key==='Enter') doSend(); };
+
+$('genDirect').onclick=async()=>{ $('chatWrap').innerHTML=''; showDots();
+  try{ const r=await callClaude([{role:'user',content:'Génère la lettre d\'objectifs complète.'}],getSys('gen')); hideDots(); const c=r.replace(/```json|```/g,'').trim(); const j=JSON.parse(c.match(/\{[\s\S]*\}/)[0]); await saveObjs(j.objectives); }
+  catch(e){ hideDots(); addMsg('assistant','Erreur: '+e.message); }
+};
+
+async function saveObjs(objs){ curObjs=objs; try{ await addDoc(collection(db,'objectives'),{manageeId:CM.id,managerId:CU.uid,objectives:objs,createdAt:serverTimestamp()}); }catch(e){} addMsg('assistant','✅ Objectifs générés !'); setTimeout(()=>{ show('manageeScr'); renderObjs(); },2000); }
+
+function renderMS(){
+  if(!curObjs) return; let html='';
+  curObjs.forEach(o=>{ html+=`<div class="ocard"><div class="ohdr"><span class="onum">O${o.id}</span><span class="otitle">${o.title}</span></div><div class="obody">`;
+    (o.kpis||[]).forEach((k,ki)=>{ html+=`<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px">${k.label}</div>`;
+      ['Q1','Q2','Q3','Q4'].forEach((q,qi)=>{ const key=`${o.id}-${ki}-${q}`,mv=msData[key+'-m']||'',ev=msData[key+'-e']||''; const avg=mv&&ev?Math.round((+mv+ +ev)/2):null,diff=mv&&ev?+mv- +ev:null;
+        html+=`<div style="margin-bottom:10px"><div style="font-size:11px;color:#aaa;margin-bottom:4px">${MS_LABELS[qi]}</div><div style="display:flex;gap:8px;align-items:center"><input class="ms-input" type="number" min="0" max="100" placeholder="Mgr %" value="${mv}" data-key="${key}" data-who="m" oninput="window._ms(this)"/><input class="ms-input" type="number" min="0" max="100" placeholder="Mee %" value="${ev}" data-key="${key}" data-who="e" oninput="window._ms(this)"/>${diff!==null?`<span style="font-size:11px;font-weight:500;color:${Math.abs(diff)>10?'var(--coral)':'var(--teal)'}">${diff>0?'Mgr +'+diff:diff<0?'Mee +'+Math.abs(diff):'✓'}</span>`:''}</div>${avg!==null?`<div class="pbar"><div class="pfill" style="width:${avg}%"></div></div>`:''}</div>`; });
+      html+='</div>'; });
+    html+='</div></div>'; });
+  $('msContent').innerHTML=html;
+}
+window._ms=el=>{ msData[el.dataset.key+'-'+el.dataset.who]=el.value; };
+
+$('addAgBtn').onclick=()=>{ const t=$('agInput').value.trim(),k=$('kpiSel').value; if(!t) return; agTmp.push({text:t,kpi:k}); $('agInput').value=''; $('agList').innerHTML=agTmp.map(a=>`<div class="agitem"><span>${a.text}</span>${a.kpi?`<span style="color:var(--purple);font-weight:500">${a.kpi}</span>`:''}</div>`).join(''); };
+
+$('saveMeetBtn').onclick=async()=>{ const date=$('wDate').value,time=$('wTime').value; if(!date||!time){ alert('Date et heure requises'); return; } await addDoc(collection(db,'meetings'),{manageeId:CM.id,managerId:CU.uid,date,time,agenda:agTmp,createdAt:serverTimestamp()}); agTmp=[]; $('wDate').value=''; $('wTime').value=''; $('agList').innerHTML=''; loadMeets(); };
+
+async function loadMeets(){ if(!CM) return; try{ const snap=await getDocs(query(collection(db,'meetings'),where('manageeId','==',CM.id))); $('meetList').innerHTML=snap.docs.map(d=>{ const m=d.data(); const ds=m.date?new Date(m.date+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}):''; return `<div class="msaved"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong style="font-size:13px">${ds}</strong><span style="font-size:12px;color:var(--t2)">${m.time}</span></div>${(m.agenda||[]).map(a=>`<div class="agitem"><span>${a.text}</span>${a.kpi?`<span style="color:var(--purple);font-size:11px">${a.kpi}</span>`:''}</div>`).join('')}</div>`; }).join('')||'<p style="color:var(--t2);font-size:13px">Aucun weekly.</p>'; }catch(e){} }
+
+function renderRC(){ if(!curObjs) return; $('rcContent').innerHTML=curObjs.map(o=>{ const v={m:[],e:[]}; (o.kpis||[]).forEach((_,ki)=>['Q1','Q2','Q3','Q4'].forEach(q=>{ const k=`${o.id}-${ki}-${q}`; if(msData[k+'-m']) v.m.push(+msData[k+'-m']); if(msData[k+'-e']) v.e.push(+msData[k+'-e']); })); const am=v.m.length?Math.round(v.m.reduce((a,b)=>a+b)/v.m.length):null; const ae=v.e.length?Math.round(v.e.reduce((a,b)=>a+b)/v.e.length):null; const avg=am&&ae?Math.round((am+ae)/2):null,diff=am&&ae?Math.abs(am-ae):0; return `<div class="ocard"><div class="ohdr"><span class="onum">O${o.id}</span><span class="otitle">${o.title}</span></div><div class="obody"><div class="rgrid"><div class="mcard"><div class="mlbl">Manager</div><div class="mval" style="color:var(--purple)">${am!==null?am+'%':'—'}</div></div><div class="mcard"><div class="mlbl">Managee</div><div class="mval" style="color:var(--teal)">${ae!==null?ae+'%':'—'}</div></div></div>${avg!==null?`<div class="pbar" style="margin-bottom:8px"><div class="pfill" style="width:${avg}%;background:${diff>15?'var(--coral)':'var(--teal)'}"></div></div>`:''}<textarea rows="2" placeholder="Commentaire…"></textarea></div></div>`; }).join(''); }
+
+let admSt='in';
+$('sIn').onclick=()=>{ admSt='in'; $('sIn').classList.add('on'); $('sRec').classList.remove('on'); };
+$('sRec').onclick=()=>{ admSt='recruited'; $('sRec').classList.add('on'); $('sIn').classList.remove('on'); };
+$('createBtn').onclick=async()=>{ const name=$('aN').value.trim(),email=$('aE').value.trim(),role=$('aR').value.trim(); if(!name||!email||!role){ alert('Remplis tous les champs'); return; } if(!email.endsWith('@amaris.com')){ alert('Email doit être @amaris.com'); return; } const pwd='Amaris'+Math.floor(Math.random()*9000+1000)+'!'; try{ await addDoc(collection(db,'users'),{name,email,role,status:admSt,managerId:CU.uid,tempPassword:pwd,createdAt:serverTimestamp()}); $('aMsg').textContent=`✅ ${name} ajouté. Mot de passe : ${pwd}`; $('aMsg').style.display='block'; $('aN').value=''; $('aE').value=''; $('aR').value=''; loadTeam(); loadAdminUsers(); }catch(e){ alert('Erreur: '+e.message); } };
+
+async function loadAdminUsers(){ try{ const snap=await getDocs(collection(db,'users')); $('aUserList').innerHTML=snap.docs.map(d=>{ const u=d.data(); return `<div class="tcard"><div class="av">${ini(u.name||'?')}</div><div style="flex:1"><div style="font-size:14px;font-weight:500">${u.name}</div><div style="font-size:12px;color:var(--t2)">${u.email}</div></div><span style="font-size:12px;color:var(--purple)">${u.role}</span></div>`; }).join('')||'<p style="color:var(--t2);font-size:13px">Aucun utilisateur.</p>'; }catch(e){} }
+
+window.exportPDF=function(){ if(!curObjs) return; const w=window.open('','_blank'); const body=curObjs.map(o=>`<div style="border:1px solid #E8E7F5;border-radius:10px;padding:16px;margin-bottom:20px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="background:#EEEDFE;color:#3C3489;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold">O${o.id}</span><strong style="flex:1">${o.title}</strong><span style="background:#7F77DD;color:#fff;padding:3px 10px;border-radius:20px;font-size:12px">${o.weight}%</span></div><p style="color:#6B6B8A;font-size:13px;margin-bottom:12px">${o.description}</p>${(o.kpis||[]).map(k=>`<div style="background:#F8F7FF;border-radius:8px;padding:10px;margin-bottom:8px"><strong>${k.label}</strong> <em style="color:#6B6B8A">(${k.unit})</em><div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:#6B6B8A"><span>Q1:${k.targets?.Q1||'—'}</span><span>Q2:${k.targets?.Q2||'—'}</span><span>Q3:${k.targets?.Q3||'—'}</span><span>Q4:${k.targets?.Q4||'—'}</span></div></div>`).join('')}</div>`).join(''); w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Objectifs ${CM?.name}</title></head><body style="font-family:Arial,sans-serif;padding:40px;color:#1A1A2E;max-width:800px;margin:0 auto"><h1 style="color:#7F77DD">Lettre d'Objectifs — ${CM?.name}</h1><p style="color:#6B6B8A;margin-bottom:30px">${CM?.role} · 01/04/2025–31/03/2026 · Amaris</p>${body}<div style="margin-top:40px;border-top:1px solid #E8E7F5;padding-top:20px"><p>Manager : Thomas Buc _________________________&nbsp;&nbsp; Date : ___________</p><p style="margin-top:16px">Managee : ${CM?.name} _________________________&nbsp;&nbsp; Date : ___________</p></div><script>window.onload=()=>window.print()<\/script></body></html>`); w.document.close(); };
+</script>
+</body>
+</html>
