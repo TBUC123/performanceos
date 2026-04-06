@@ -265,9 +265,9 @@ function openAssistant(){ show('assistantScr'); $('aiTitle').textContent='Object
 
 // *** APPEL PROXY /api/claude ***
 async function callClaude(messages,system){
-  const r=await fetch('/api/claude',{
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true'},
     body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system,messages})
   });
   const d=await r.json();
